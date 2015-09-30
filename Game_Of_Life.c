@@ -71,7 +71,7 @@ void GenerateInitialGoL (int rank,int p, int start,int N, int effective_cols_siz
 }
 void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N][effective_cols_size])
 {
-    int i; 
+    int i;
     int next_rank = (rank + 1) % p;
     int previous_rank = (rank + p - 1) % p;
 
@@ -92,7 +92,7 @@ void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N]
           MPI_Recv(&a, 1, MPI_INT, previous_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
           matrix[i][0] = a;
       }
-    
+
       //update next rank ghost column
       for(i = 0 ; i < N; i++)
       {
@@ -138,8 +138,8 @@ int getNWState(int i, int j, int rank, int N, int effective_cols_size, int  matr
 {
     if(i==0)
         return matrix[N][j-1];
-    return matrix[i-1][j-1]; 
- 
+    return matrix[i-1][j-1];
+
 }
 int getNEState(int i, int j, int rank, int N, int effective_cols_size, int  matrix[N][effective_cols_size])
 {
@@ -158,7 +158,7 @@ int getSEState(int i, int j, int rank, int N, int effective_cols_size, int  matr
     if(i==N)
         return matrix[0][j+1];
     return matrix[i+1][j+1];
-            
+
 }
 
 int DetermineState(int i,int j,int rank,int N, int effective_cols_size,int matrix[N][effective_cols_size])
@@ -273,6 +273,15 @@ int main(int argc, char *argv[]) {
 				int j;
 				MPI_Gather(tmpmatrix, N * (effective_cols_size-2), MPI_INT,  displaymatrix,N*N, MPI_INT, 0,
 							   MPI_COMM_WORLD);
+
+				 printf("\n \n GATHER AT RANK %d\n",rank);
+				                for (r = 0; r < N; r++) {
+				                    for (c = 0; c < N; c++)
+				                        printf("V_Gather-%d-%d = %d  ",r,c, displaymatrix[r][c]);
+				                    printf("\n");
+				                }
+
+
 			}
 }
     } else {
