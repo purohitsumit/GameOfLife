@@ -84,7 +84,7 @@ void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N]
       {
           MPI_Send(&matrix[i][1], 1, MPI_INT, previous_rank, 0, MPI_COMM_WORLD);
       }
-                          //update previous rank ghost column
+      //update previous rank ghost column
       for(i = 0 ; i < N; i++)
       {
           int a = 0;
@@ -220,11 +220,12 @@ void Simulate(int g,int rank,int N, int effective_cols_size,int matrix[N][effect
 
 int main(int argc, char *argv[]) {
 
-    int rank, p, N, G;
+    int rank, p, N, G,X;
     struct timeval t1, t2;
     N = 16;
     p = 2;
-    G = 1;
+    G = 12;
+    X = 3;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -260,7 +261,20 @@ int main(int argc, char *argv[]) {
         {
             MPI_Barrier(MPI_COMM_WORLD);
             Simulate(i,rank,N,effective_cols_size,matrix,p);
-        }
+            if(i%X==0)
+			{
+				int displaymatrix[N][N];
+            	int tmpmatrix[N][effective_cols_size-2];
+				//Traverse local matrix and create THE matrix to send
+				int r,c;
+				for(r=0;r<N;r++)
+					for(c=1;c<effective_cols_size-1;c++)
+						tmpmatrix[r][c]=matrix[r][c];
+				int j;
+				MPI_Gather(tmpmatrix, N * (effective_cols_size-2), MPI_INT,  displaymatrix,N*N, MPI_INT, 0,
+							   MPI_COMM_WORLD);
+			}
+}
     } else {
         int a = 0;
         MPI_Status status;
@@ -281,7 +295,20 @@ int main(int argc, char *argv[]) {
         {
             MPI_Barrier(MPI_COMM_WORLD);
             Simulate(i,rank,N,effective_cols_size,matrix,p);
+            if(i%X==0)
+			{
+				int tmpmatrix[N][effective_cols_size-2];
+				//Traverse local matrix and create THE matrix to send
+				int r,c;
+				for(r=0;r<N;r++)
+					for(c=1;c<effective_cols_size-1;c++)
+						tmpmatrix[r][c]=matrix[r][c];
+				int j;
+				MPI_Gather(tmpmatrix, N * (effective_cols_size-2), MPI_INT, NULL, r*c, MPI_INT, 0,
+							   MPI_COMM_WORLD);
+			}
         }
+
     }
 
 
