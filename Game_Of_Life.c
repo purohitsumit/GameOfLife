@@ -113,7 +113,7 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
     int count = 0;
     int r, c;
     int displaymatrix[N][N];
-    
+    printf("\n IN Display  rank = %d  %d");
             for(c=1;c<effective_cols_size-1;c++){
                 for(r=0;r<N;r++)
                         tempArray[count] = matrix[N][effective_cols_size];
@@ -127,22 +127,23 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
                 // put it into a matrix and
                 int matrix[N][N];
                 int j = 0;
+                int r,c;
+
                 
                 for(c=0;c<N*N;c++){
             
                     displaymatrix[c%N][c/j] = tempArray[c];
 
-
                 }
+                printf("\n \n GATHER AT RANK %d\n",rank);
+                                                  for (r = 0; r < N; r++) {
+                                                      for (c = 0; c < N; c++)
+                                                          printf("V_Gather-%d-%d = %d  ",r,c, displaymatrix[r][c]);
+                                                      printf("\n");
+                                                  }
 
             } 
 
-            
-      else {
-
-                MPI_Gather(tempArray, N * (realColumnSize), MPI_INT,  displaymatrix,N*N, MPI_INT, 0, MPI_COMM_WORLD);
-
-            }
 
 
    return;
@@ -299,26 +300,15 @@ int main(int argc, char *argv[]) {
         for(i=0;i<G;i++)
         {
             MPI_Barrier(MPI_COMM_WORLD);
+            printf("\n in loop with rank = %d  %d",rank,i);
             Simulate(i,rank,N,effective_cols_size,matrix,p);
+            printf("\n AFTER SIMULATION  rank = %d  %d",rank,i);
             if(i%X==0)
             {
-                int displaymatrix[N][N];
-                int tmpmatrix[N][effective_cols_size-2];
                 //Traverse local matrix and create THE matrix to send
-                int r,c;
-
-                for(r=0;r<N;r++)
-                    for(c=1;c<effective_cols_size-1;c++)
-                        tmpmatrix[r][c]=matrix[r][c];
-                int j;
                 DisplayGol(N, effective_cols_size, matrix, rank);
 
-                 printf("\n \n GATHER AT RANK %d\n",rank);
-                                for (r = 0; r < N; r++) {
-                                    for (c = 0; c < N; c++)
-                                        printf("V_Gather-%d-%d = %d  ",r,c, displaymatrix[r][c]);
-                                    printf("\n");
-                                }
+
 
 
             }
@@ -342,7 +332,9 @@ int main(int argc, char *argv[]) {
         for(i=0;i<G;i++)
         {
             MPI_Barrier(MPI_COMM_WORLD);
+            printf("\n in loop with rank = %d  %d",rank,i);
             Simulate(i,rank,N,effective_cols_size,matrix,p);
+            printf("\n AFTER SIMULATION  rank = %d  %d",rank,i);
             if(i%X==0)
             {
                 DisplayGol(N, effective_cols_size, matrix,rank);
