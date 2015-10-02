@@ -142,13 +142,13 @@ else
                 for(c=0;c<N*N;c++){
 
                     displaymatrix[c%N][c/N] = tempTempArray[c];
-                    printf("INDEX 22:  %d, VALUE:  %d\n", c, tempTempArray[c]);
+                    //printf("INDEX 22:  %d, VALUE:  %d\n", c, tempTempArray[c]);
 
                 }
                 printf("\n \n GATHER AT RANK %d\n",rank);
 			  for (r = 0; r < N; r++) {
 				  for (c = 0; c < N; c++)
-					  printf("V_Gather-%d-%d = %d  ",r,c, displaymatrix[r][c]);
+					  printf("V_G-%d-%d = %d  ",r,c, displaymatrix[r][c]);
 				  printf("\n");
 			  }
 
@@ -251,18 +251,18 @@ void Simulate(int g,int rank,int N, int effective_cols_size,int matrix[N][effect
 
     UpdateNeighbors(rank,p,N,effective_cols_size,matrix);
 
-    printf("\n Last State : of rank %d\n",rank);
+  printf("\n Last State : of rank %d\n",rank);
         for (i = 0; i < N; i++) {
             for (j = 0; j < effective_cols_size; j++)
                 printf("v%d-%d-%d = %d  ",rank,i,j, tmpdata[i][j]);
             printf("\n");
         }
 
-    printf("\n \n New State : of rank %d\n",rank);
+    //printf("\n \n New State : of rank %d\n",rank);
                 for (i = 0; i < N; i++) {
                     for (j = 0; j < effective_cols_size; j++)
-                        printf("v%d-%d-%d = %d  ",rank,i,j, matrix[i][j]);
-                    printf("\n");
+                        //printf("v%d-%d-%d = %d  ",rank,i,j, matrix[i][j]);
+                    //printf("\n");
                 }
 
 //    UpdateNeighbors(rank,p,N,effective_cols_size,matrix);
