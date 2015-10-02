@@ -269,88 +269,322 @@ void Simulate(int g,int rank,int N, int effective_cols_size,int matrix[N][effect
 
 }
 
+int rank, p, N, G,X;
 
-int main(int argc, char *argv[]) {
-
-    int rank, p, N, G,X;
     struct timeval t1, t2;
+
+    // Change this "N" from 2 up to 16
+
     N = 16;
+
     p = 2;
-    G = 1;
+
+    G = 10;
+
 //    X = 3;
+
     X = 1;
+
     MPI_Init(&argc, &argv);
+
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
     MPI_Comm_size(MPI_COMM_WORLD, &p);
 
+ 
+
+    //Timing for total runtime
+
+    struct timeval totalRuntimeStart, totalRuntimeEnd;
+
+    int totalRuntime;
+
+   
+
+    // Timing for average time per generation(excluding display)
+
+    struct timeval avgPerGenerationStart, avgPerGenerationEnd;
+
+    int averageTimePerGeneration;
+
+    int tempTime;
+
+   
+
+    // Average time per the display function
+
+    struct timeval displayRuntimeStart, displayRuntimeEnd;
+
+    int averageDisplayTimePerGeneration;
+
+    int displayTempTime;
+
+    int displayMethodCounter = 0;
+
+   
+
+    
+
+    // Time for different communication steps.
+
+    struct timeval mpiCallRuntimeStart, mpiCallRuntimeEnd;
+
+   
+
+    
+
     int MAX_SIZE = 30;
+
     int MAX_TRIAL = 100;
 
-    int randomseed[p];
-    srand(time(NULL));
+    int userInput;
 
-    if (rank == 0) {
-        int i;
+    printf("How many generations should be run?\n"");
 
-        for (i = 0; i < p; i++) {
-            randomseed[i] = rand();
-            //(int)(1+(int)(1000*drand48()));
-        }
+    scanf("%d", userInput);
 
-        for (i = 1; i < p; i++) {
-            MPI_Send(&randomseed[i], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-        }
-        int start_index, end_index;
-        start_index = rank * (N / p);
-        end_index = (rank + 1) * (N / p) - 1;
-        int cols_size = (end_index - start_index) +1;
-        int effective_cols_size = cols_size + 2;
-        int matrix[N][effective_cols_size];
+   
 
-        //initialize matrix part
-        GenerateInitialGoL(rank, p, start_index, N, effective_cols_size,matrix,randomseed[0]);
-        for(i=0;i<G;i++)
-        {
-            MPI_Barrier(MPI_COMM_WORLD);
-            Simulate(i,rank,N,effective_cols_size,matrix,p);
-            if(i%X==0)
-            {
-                printf("\n calling gather rank = %d\n",rank);
-            	DisplayGol(N, effective_cols_size, matrix, rank);
+    // If user enters a valid number for user # of Generations to run
 
-            }
-}
-    } else {
-        int a = 0;
-        MPI_Status status;
-        MPI_Recv(&a, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    if(userInput>0){
 
-        printf("\n ranke = %d and seend = %d", rank, a);
-        int start_index, end_index;
-        start_index = rank * (N / p);
-        end_index = (rank + 1) * (N / p) - 1;
-        int cols_size = (end_index - start_index) +1;
-        int effective_cols_size = cols_size + 2;
-        int matrix[N][effective_cols_size];
-
-        //initialize matrix part
-        GenerateInitialGoL(rank, p, start_index, N, effective_cols_size,matrix,a);
-        int i;
-        for(i=0;i<G;i++)
-        {
-            MPI_Barrier(MPI_COMM_WORLD);
-            Simulate(i,rank,N,effective_cols_size,matrix,p);
-            if(i%X==0)
-            {
-            	DisplayGol(N, effective_cols_size, matrix,rank);
-
-            }
-        }
+        G = userInput; 
 
     }
 
+    int randomseed[p];
+
+    srand(time(NULL));
+
+ 
+
+    if (rank == 0) {
+
+       
+
+        gettimeofday(&totalRuntimeStart, NULL);
+
+        int i;
+
+       
+
+        for (i = 0; i < p; i++) {
+
+            randomseed[i] = rand();
+
+            //(int)(1+(int)(1000*drand48()));
+
+        }
+
+ 
+
+        for (i = 1; i < p; i++) {
+
+            MPI_Send(&randomseed[i], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+
+        }
+
+        int start_index, end_index;
+
+        start_index = rank * (N / p);
+
+        end_index = (rank + 1) * (N / p) - 1;
+
+        int cols_size = (end_index - start_index) +1;
+
+        int effective_cols_size = cols_size + 2;
+
+        int matrix[N][effective_cols_size];
+
+ 
+
+ 
+
+ 
+
+        //initialize matrix part
+
+        GenerateInitialGoL(rank, p, start_index, N, effective_cols_size,matrix,randomseed[0]);
+
+        for(i=0;i<G;i++)
+
+        {
+
+            gettimeofday(&avgPerGenerationStart, NULL);
+
+            MPI_Barrier(MPI_COMM_WORLD);
+
+            Simulate(i,rank,N,effective_cols_size,matrix,p);
+
+            if(i%X==0)
+
+            {
+
+                printf("\n calling gather rank = %d\n",rank);
+
+                gettimeofday(displayRuntimeStart, NULL);
+
+                DisplayGol(N, effective_cols_size, matrix, rank);
+
+                gettimeofday(displayRuntimeEnd, NULL);
+
+                displayTempTime += ((displayRuntimeEnd.tv_sec-displayRuntimeStart.tv_sec)*1000 + ((displayRuntimeEnd.tv_usec - displayRuntimeStart.tv_usec)/1000));
+
+                displayMethodCounter++;
+
+            }
+
+            gettimeofday(&avgPerGenerationEnd, NULL);
+
+            tempTime+= ((avgPerGenerationEnd.tv_sec-avgPerGenerationStart.tv_sec)*1000 + ((avgPerGenerationEnd.tv_usec - avgPerGenerationStart.tv_usec)/1000));
+
+           
+
+        }
+
+       
+
+        
+
+        // Average the number of times the display method was called.
+
+        averageDisplayTimePerGeneration = displayTempTime / displayMethodCounter;
+
+       
+
+        // Average the G iterations
+
+        averageTimePerGeneration = tempTime/G;
+
+       
+
+        
+
+        gettimeofday(&totalRuntimeEnd, NULL);
+
+       
+
+        totalRuntime = (totalRuntimeEnd.tv_sec - totalRuntimeStart.tv_sec)*1000 + (totalRuntimeEnd.tv_usec - totalRuntimeStart.tv_sec)/1000;
+
+       
+
+        
+
+        } else {
+
+       
+
+        gettimeofday(&totalRuntimeStart, NULL);
+
+ 
+
+        int a = 0;
+
+        MPI_Status status;
+
+        MPI_Recv(&a, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+ 
+
+        printf("\n ranke = %d and seend = %d", rank, a);
+
+        int start_index, end_index;
+
+        start_index = rank * (N / p);
+
+        end_index = (rank + 1) * (N / p) - 1;
+
+        int cols_size = (end_index - start_index) +1;
+
+        int effective_cols_size = cols_size + 2;
+
+        int matrix[N][effective_cols_size];
+
+ 
+
+        //initialize matrix part
+
+        GenerateInitialGoL(rank, p, start_index, N, effective_cols_size,matrix,a);
+
+        int i;
+
+        for(i=0;i<G;i++)
+
+        {
+
+           
+
+            gettimeofday(&avgPerGenerationStart, NULL);
+
+            MPI_Barrier(MPI_COMM_WORLD);
+
+            Simulate(i,rank,N,effective_cols_size,matrix,p);
+
+            if(i%X==0)
+
+            {
+
+                 gettimeofday(displayRuntimeStart, NULL);
+
+                DisplayGol(N, effective_cols_size, matrix,rank);
+
+                gettimeofday(displayRuntimeEnd, NULL);
+
+                displayTempTime += ((displayRuntimeEnd.tv_sec-displayRuntimeStart.tv_sec)*1000 + ((displayRuntimeEnd.tv_usec - displayRuntimeStart.tv_usec)/1000));
+
+                displayMethodCounter++;
+
+ 
+
+            }
+
+            gettimeofday(&avgPerGenerationEnd, NULL);
+
+            tempTime+= ((avgPerGenerationEnd.tv_sec-avgPerGenerationStart.tv_sec)*1000 + ((avgPerGenerationEnd.tv_usec - avgPerGenerationStart.tv_usec)/1000));
+
+            averageTimePerGeneration = tempTime/G;
+
+ 
+
+           
+
+        }
+
+       
+
+        // Average the number of times the display method was called.
+
+        averageDisplayTimePerGeneration = displayTempTime / displayMethodCounter;
+
+       
+
+        
+
+        // Get the total runtime
+
+        gettimeofday(&totalRuntimeEnd, NULL);
+
+        totalRuntime = (totalRuntimeEnd.tv_sec - totalRuntimeStart.tv_sec)*1000 + (totalRuntimeEnd.tv_usec - totalRuntimeStart.tv_sec)/1000;
+
+    }
+
+ 
+
+   
+
+    printf("RANK: %d     TOTAL RUNTIME: %d\n",rank, totalRuntime);
+
+    printf("RANK: %d     AVERAGE RUNTIME PER GENERATION: %d\n", rank, averageTimePerGeneration);
+
+    printf("RANK: %d     AVERAGE TIME PER DISPLAY METHOD: %d\n", rank, averageDisplayTimePerGeneration);
+
+ 
 
     MPI_Finalize();
+
     //This will output the array.
+
+ 
 
 }
