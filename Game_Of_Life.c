@@ -268,7 +268,8 @@ void Simulate(int g,int rank,int N, int effective_cols_size,int matrix[N][effect
 //    UpdateNeighbors(rank,p,N,effective_cols_size,matrix);
 
 }
-
+int main(int argc,char *argv[])
+{
 int rank, p, N, G,X;
 
     struct timeval t1, t2;
@@ -339,7 +340,7 @@ int rank, p, N, G,X;
 
     int userInput;
 
-    printf("How many generations should be run?\n"");
+    printf("How many generations should be run?\n");
 
     scanf("%d", userInput);
 
@@ -423,11 +424,11 @@ int rank, p, N, G,X;
 
                 printf("\n calling gather rank = %d\n",rank);
 
-                gettimeofday(displayRuntimeStart, NULL);
+                gettimeofday(&displayRuntimeStart, NULL);
 
                 DisplayGol(N, effective_cols_size, matrix, rank);
 
-                gettimeofday(displayRuntimeEnd, NULL);
+                gettimeofday(&displayRuntimeEnd, NULL);
 
                 displayTempTime += ((displayRuntimeEnd.tv_sec-displayRuntimeStart.tv_sec)*1000 + ((displayRuntimeEnd.tv_usec - displayRuntimeStart.tv_usec)/1000));
 
@@ -525,7 +526,7 @@ int rank, p, N, G,X;
 
             {
 
-                 gettimeofday(displayRuntimeStart, NULL);
+                 gettimeofday(&displayRuntimeStart, NULL);
 
                 DisplayGol(N, effective_cols_size, matrix,rank);
 
