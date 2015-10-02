@@ -105,7 +105,7 @@ void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N]
 }
 void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_size], int rank)
 {
-    
+
 
     int realColumnSize = effective_cols_size-2;
     int arraySize = N * realColumnSize;
@@ -121,7 +121,7 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
                 }
 
             MPI_Gather(tempArray, N * (realColumnSize), MPI_INT,  displaymatrix,N*N, MPI_INT, 0, MPI_COMM_WORLD);
-            
+
             if(rank==0){
                 // If the rank is 0 we will need to gather from the array
                 // put it into a matrix and
@@ -129,10 +129,10 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
                 int j = 0;
                 int r,c;
 
-                
+
                 for(c=0;c<N*N;c++){
-            
-                    displaymatrix[c%N][c/j] = tempArray[c];
+
+                    displaymatrix[c%N][c/N] = tempArray[c];
 
                 }
                 printf("\n \n GATHER AT RANK %d\n",rank);
@@ -142,7 +142,7 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
                                                       printf("\n");
                                                   }
 
-            } 
+            }
 
 
 
