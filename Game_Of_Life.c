@@ -29,21 +29,39 @@ void GenerateInitialGoL (int rank,int p, int start,int N, int effective_cols_siz
             else
                 matrix[i][j] = 0;
         }
-
+    int tSend = 0;
     int next_rank = (rank + 1) % p;
     int previous_rank = (rank + p - 1) % p;
-
+    struct timeval send1s, send1e, send2s, send2e;
+    
     //send ACTUAL last col to next_rank
+    gettimeofday(&send1s, NULL);
     for(i=0;i<N;i++)
     {
         MPI_Send(&matrix[i][effective_cols_size-2], 1, MPI_INT, next_rank, 0, MPI_COMM_WORLD);
     }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR FIRST SEND %d\n", tSend);
     //send ACTUAL first col to previous_rank
+    
+
+    gettimeofday(&send1s, NULL);
     for(i=0;i<N;i++)
     {
         MPI_Send(&matrix[i][1], 1, MPI_INT, previous_rank, 0, MPI_COMM_WORLD);
     }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR SECOND SEND %d\n", tSend);
     //update previous rank ghost column
+    
+
+
+
+    gettimeofday(&send1s, NULL);
     for(i = 0 ; i < N; i++)
     {
         int a = 0;
@@ -51,7 +69,12 @@ void GenerateInitialGoL (int rank,int p, int start,int N, int effective_cols_siz
         MPI_Recv(&a, 1, MPI_INT, previous_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         matrix[i][0] = a;
     }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR FIRST RECEIVE %d\n", tSend);
 
+    gettimeofday(&send1s, NULL);
     //update next rank ghost column
     for(i = 0 ; i < N; i++)
     {
@@ -60,6 +83,10 @@ void GenerateInitialGoL (int rank,int p, int start,int N, int effective_cols_siz
         MPI_Recv(&a, 1, MPI_INT, next_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         matrix[i][effective_cols_size-1] = a;
     }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR SECOND RECEIVE %d\n", tSend);
 
 //  printf("\n");
 //  for (i = 0; i < N; i++) {
@@ -74,17 +101,34 @@ void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N]
     int i;
     int next_rank = (rank + 1) % p;
     int previous_rank = (rank + p - 1) % p;
+   
+    struct timeval send1s, send1e; 
+    int tSend;
 
+    gettimeofday(&send1s, NULL);
     for(i=0;i<N;i++)
     {
         MPI_Send(&matrix[i][effective_cols_size-2], 1, MPI_INT, next_rank, 0, MPI_COMM_WORLD);
     }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR UpdateNeighbors SEND1 %d\n", tSend);
+
+
     //send ACTUAL first col to previous_rank
+    gettimeofday(&send1s, NULL);
       for(i=0;i<N;i++)
       {
           MPI_Send(&matrix[i][1], 1, MPI_INT, previous_rank, 0, MPI_COMM_WORLD);
       }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR UpdateNeighbors sendActualfirstCol to Previous rank %d\n", tSend);
+
       //update previous rank ghost column
+      gettimeofday(&send1s, NULL);
       for(i = 0 ; i < N; i++)
       {
           int a = 0;
@@ -92,8 +136,13 @@ void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N]
           MPI_Recv(&a, 1, MPI_INT, previous_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
           matrix[i][0] = a;
       }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR UpdateNeighbors updateprevious rank ghost %d\n", tSend);
 
       //update next rank ghost column
+      gettimeofday(&send1s, NULL);
       for(i = 0 ; i < N; i++)
       {
           int a = 0;
@@ -101,9 +150,14 @@ void UpdateNeighbors(int rank,int p,int N, int effective_cols_size,int matrix[N]
           MPI_Recv(&a, 1, MPI_INT, next_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
           matrix[i][effective_cols_size-1] = a;
       }
+    gettimeofday(&send1e, NULL);
+    tSend = (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    tSend = tSend / N;
+    //printf("TIME FOR update next rank ghost %d\n", tSend);
+
 
 }
-void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_size], int rank)
+int DisplayGoL(int N, int effective_cols_size, int matrix[N][effective_cols_size], int rank)
 {
 
     int realColumnSize = effective_cols_size-2;
@@ -113,6 +167,10 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
     int r, c;
     int displaymatrix[N][N];
     int tempTempArray[N*N];
+    int currentGatherTime = 0;
+    
+    struct timeval send1s, send1e; 
+    int tSend;
     //printf("\nEFFECTIVE COL SIXE :%d",effective_cols_size);
 	for(c=1;c<effective_cols_size-1;c++){
 		for(r=0;r<N;r++){
@@ -121,6 +179,8 @@ void DisplayGol(int N, int effective_cols_size, int matrix[N][effective_cols_siz
 				//printf("SETTING RANK:%d, INDEX: %d and %d, VALUE: %d\n", rank, r,c, tempArray[count-1]);
 		}
 	}
+
+    gettimeofday(&send1s, NULL);
 if(rank==0)
 	{
 	MPI_Gather(tempArray, N * (realColumnSize), MPI_INT,  tempTempArray,N * (realColumnSize), MPI_INT, 0, MPI_COMM_WORLD);
@@ -129,7 +189,9 @@ else
 	{
 	MPI_Gather(tempArray, N * (realColumnSize), MPI_INT,  NULL,0, MPI_INT, 0, MPI_COMM_WORLD);
 	}
-
+    gettimeofday(&send1e, NULL);
+    currentGatherTime += (send1e.tv_sec-send1s.tv_sec)*1000 + (send1e.tv_usec-send1s.tv_usec)/1000;
+    //printf("%d", currentGatherTime);
             int q = 0;
 
            // for(q=0; q< N*realColumnSize; q++){
@@ -145,19 +207,19 @@ else
                     //printf("INDEX 22:  %d, VALUE:  %d\n", c, tempTempArray[c]);
 
                 }
-//                printf("\n \n GATHER AT RANK %d\n",rank);
-//			  for (r = 0; r < N; r++) {
-//				  for (c = 0; c < N; c++)
-//					  printf("V_G-%d-%d = %d  ",r,c, displaymatrix[r][c]);
-//				  printf("\n");
-//			  }
+              //  printf("\n \n GATHER AT RANK %d\n",rank);
+			  for (r = 0; r < N; r++) {
+				  for (c = 0; c < N; c++)
+					  printf("V_G-%d-%d = %d  ",r,c, displaymatrix[r][c]);
+				  printf("\n");
+			  }
 
             }
 
 
 
 
-
+    return currentGatherTime;
    //return;
 }
 
@@ -272,7 +334,7 @@ int main(int argc,char *argv[])
 {
 	int rank, p, N, G,X;
 
-    struct timeval t1, t2;
+    struct timeval t1, t2, t3, t4;
 
     // Change this "N" from 2 up to 16
 
@@ -308,8 +370,7 @@ int main(int argc,char *argv[])
 
     int averageTimePerGeneration;
 
-    int tempTime;
-
+    int tempTime=0;
 
 
     // Average time per the display function
@@ -353,7 +414,14 @@ int main(int argc,char *argv[])
     	            randomseed[i] = rand();
     }
     int received_random;
+    int scatterTime;
+    gettimeofday(&t3, NULL);
     MPI_Scatter(randomseed, 1, MPI_INT, &received_random, 1,MPI_INT,0, MPI_COMM_WORLD);
+    gettimeofday(&t4, NULL);
+   
+    scatterTime =  (t4.tv_sec-t3.tv_sec)*1000 + (t4.tv_usec-t3.tv_usec)/1000; 
+    //printf("%d\t%d", rank, scatterTime);
+
 
     int start_index, end_index;
 
@@ -367,17 +435,24 @@ int main(int argc,char *argv[])
 
 	int matrix[N][effective_cols_size];
 
+
+    struct timeval barrier1s,barrier1e;
+    int tBarrier = 0;
+    int tBarrierAvg = 0;
      //initialize matrix part
 
-     GenerateInitialGoL(rank, p, start_index, N, effective_cols_size,matrix,received_random);
+    int currentGatherTime = 0;
 
+     GenerateInitialGoL(rank, p, start_index, N, effective_cols_size,matrix,received_random);
      for(i=0;i<G;i++)
 
             {
              	gettimeofday(&avgPerGenerationStart, NULL);
 
+                gettimeofday(&barrier1s, NULL);
                 MPI_Barrier(MPI_COMM_WORLD);
-
+                gettimeofday(&barrier1e, NULL);
+                tBarrier += (barrier1e.tv_sec-barrier1s.tv_sec)*1000 + (barrier1e.tv_usec-barrier1s.tv_usec)/1000;
                 Simulate(i,rank,N,effective_cols_size,matrix,p);
 
                 if(i%X==0)
@@ -385,7 +460,7 @@ int main(int argc,char *argv[])
                 {
                     gettimeofday(&displayRuntimeStart, NULL);
 
-                    DisplayGol(N, effective_cols_size, matrix,rank);
+                    currentGatherTime += DisplayGoL(N, effective_cols_size, matrix,rank);
 
                     gettimeofday(&displayRuntimeEnd, NULL);
 
@@ -396,9 +471,9 @@ int main(int argc,char *argv[])
 
                 gettimeofday(&avgPerGenerationEnd, NULL);
 
+                //printf("START: %d\n ", avgPerGenerationStart.tv_sec);
+                //printf("END: %d\n ", avgPerGenerationEnd.tv_sec);
                 tempTime+= ((avgPerGenerationEnd.tv_sec-avgPerGenerationStart.tv_sec)*1000 + ((avgPerGenerationEnd.tv_usec - avgPerGenerationStart.tv_usec)/1000));
-
-                averageTimePerGeneration = tempTime/G;
 
 
 
@@ -406,12 +481,13 @@ int main(int argc,char *argv[])
 
             }
 
-
+                tBarrierAvg = tBarrier / G; 
+                averageTimePerGeneration = tempTime/G;
 
             // Average the number of times the display method was called.
 
             averageDisplayTimePerGeneration = displayTempTime / displayMethodCounter;
-
+            currentGatherTime = currentGatherTime / displayMethodCounter;
 
 
 
@@ -422,13 +498,12 @@ int main(int argc,char *argv[])
 
             totalRuntime = (totalRuntimeEnd.tv_sec - totalRuntimeStart.tv_sec)*1000 + (totalRuntimeEnd.tv_usec - totalRuntimeStart.tv_usec)/1000;
 
+    //printf("%d\t%d\n",rank, totalRuntime);
+    //printf("%d\t%d\n",rank, tBarrierAvg);
+    //printf("RANK: %d     AVERAGE RUNTIME PER GENERATION: %d\n", rank, averageTimePerGeneration);
 
-    printf("RANK: %d     TOTAL RUNTIME: %d\n",rank, totalRuntime);
-
-    printf("RANK: %d     AVERAGE RUNTIME PER GENERATION: %d\n", rank, averageTimePerGeneration);
-
-    //printf("RANK: %d     AVERAGE TIME PER DISPLAY METHOD: %d\n", rank, averageDisplayTimePerGeneration);
-
+   // printf("RANK: %d     AVERAGE TIME PER DISPLAY METHOD: %d\n\n\n", rank, averageDisplayTimePerGeneration);
+    printf("%d\t%d\n", rank, currentGatherTime);
 
 
     MPI_Finalize();
