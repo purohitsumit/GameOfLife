@@ -29,6 +29,17 @@ int main(int argc,char *argv[])
     Prime = 93563;
 //    X = 3;
 
+    // Get a,b,P and random seed from the command line.
+    // Overwriting the hardcoded values above.
+    if(argc > 5){
+    	a = argv[1];
+    	b = argv[2];
+    	Prime = argv[3];
+    	seed = argv[4];
+    }
+    a = argv[1];
+    b = argv[2];
+    Prime = argv[3];
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
