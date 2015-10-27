@@ -32,10 +32,10 @@ int main(int argc,char *argv[])
     // Get a,b,P and random seed from the command line.
     // Overwriting the hardcoded values above.
     if(argc > 5){
-    	a = *argv[1];
-    	b = *argv[2];
-    	Prime = *argv[3];
-    	seed = *argv[4];
+    	a = atoi(argv[1]);
+    	b = atoi(argv[2]);
+    	Prime = atoi(argv[3]);
+    	seed = atoi(argv[4]);
     }
 
     MPI_Init(&argc, &argv);
