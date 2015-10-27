@@ -17,12 +17,12 @@
 
 int main(int argc,char *argv[])
 {
-	int rank, p, N, a,b,Prime,seed;
+    int rank, p, N, a,b,Prime,seed;
 
     struct timeval t1, t2, t3, t4;
 
-    N = 16;
-
+//    N = 16;
+    N = 1000000;
     a = 3;
     b = 5;
     seed = 10;
@@ -32,16 +32,21 @@ int main(int argc,char *argv[])
     // Get a,b,P and random seed from the command line.
     // Overwriting the hardcoded values above.
     if(argc > 5){
-    	a = atoi(argv[1]);
-    	b = atoi(argv[2]);
-    	Prime = atoi(argv[3]);
-    	seed = atoi(argv[4]);
+        a = atoi(argv[1]);
+        b = atoi(argv[2]);
+        Prime = atoi(argv[3]);
+        seed = atoi(argv[4]);
     }
 
+
+    struct timeval totalRuntimeStart, totalRuntimeEnd;
+
+    gettimeofday(&totalRuntimeStart, NULL);
+    
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &p);
-    printf("Hello from rank %d",rank);
+    //printf("Hello from rank %d",rank);
 
 
     //Step 1; Every proc has N/p entries of 2d matrix
@@ -59,7 +64,7 @@ int main(int argc,char *argv[])
     myx = malloc((N/p) * sizeof(int **));
     int i=0;
     for(i=0;i<N/p;i++)
-    	myx[i] = m;
+        myx[i] = m;
 
 
 
@@ -85,48 +90,48 @@ int main(int argc,char *argv[])
     global[1][0] = b;
     global[1][1] = 1;
     for(i=0;i<(N/p)-1;i++)
-    	matrix_multiplication(m,global,global);
+        matrix_multiplication(m,global,global);
     //Step 2.3  parallel prefix for loop
     int number_of_steps = log10 (p) / log10 (2);
     int x=1;
     for(i=0;i<number_of_steps;i++)
     {
-    	//send data
-    	int* send_data = malloc(4*(sizeof(int)));
-    	send_data[0] = global[0][0];
-    	send_data[1] = global[0][1];
-    	send_data[2] = global[1][0];
-    	send_data[3] = global[1][1];
+        //send data
+        int* send_data = malloc(4*(sizeof(int)));
+        send_data[0] = global[0][0];
+        send_data[1] = global[0][1];
+        send_data[2] = global[1][0];
+        send_data[3] = global[1][1];
 
-    	//find mate;update x
-    	int mate = rank ^ x;
-    	x=x<<1;
+        //find mate;update x
+        int mate = rank ^ x;
+        x=x<<1;
 
-    	MPI_Send(send_data, 4, MPI_INT, mate, 0, MPI_COMM_WORLD);
+        MPI_Send(send_data, 4, MPI_INT, mate, 0, MPI_COMM_WORLD);
 
-    	//receive data
-    	int* receive_data = malloc(4 * sizeof(int));
+        //receive data
+        int* receive_data = malloc(4 * sizeof(int));
         MPI_Status status;
-    	MPI_Recv(receive_data, 4, MPI_INT, mate, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(receive_data, 4, MPI_INT, mate, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-    	//update your local Only if mate rank < my rank
-    	int** received_global = malloc(2 * sizeof(int *));
-    	received_global[0] = malloc(2 * sizeof(int));
-    	received_global[1] = malloc(2 * sizeof(int));
-    	received_global[0][0] = receive_data[0];
-    	received_global[0][1] = receive_data[1];
-    	received_global[1][0] = receive_data[2];
-    	received_global[1][1] = receive_data[3];
+        //update your local Only if mate rank < my rank
+        int** received_global = malloc(2 * sizeof(int *));
+        received_global[0] = malloc(2 * sizeof(int));
+        received_global[1] = malloc(2 * sizeof(int));
+        received_global[0][0] = receive_data[0];
+        received_global[0][1] = receive_data[1];
+        received_global[1][0] = receive_data[2];
+        received_global[1][1] = receive_data[3];
 
 
 
-    	if(rank > mate)
-    	{
-    		matrix_multiplication(local,received_global,local);
-    	}
+        if(rank > mate)
+        {
+            matrix_multiplication(local,received_global,local);
+        }
 
-    	//always update global
-    	matrix_multiplication(global,received_global,global);
+        //always update global
+        matrix_multiplication(global,received_global,global);
     }
 
 
@@ -140,65 +145,69 @@ int main(int argc,char *argv[])
     //get rest of the numbers
     for(i=1;i<(N/p);i++)
     {
-    	resulting_random_numbers[i] = ((resulting_random_numbers[i-1] * a) + b) % Prime;
+        resulting_random_numbers[i] = ((resulting_random_numbers[i-1] * a) + b) % Prime;
     }
-	printf("\nfrom rank %d , anser  is ",rank);
-	for(i=0;i<(N/p);i++)
-		{
-			printf("\nnumber= %d",resulting_random_numbers[i]);
-		}
-	printf("\n\n\n");
-    struct timeval totalRuntimeStart, totalRuntimeEnd;
+    //printf("\nfrom rank %d , anser  is ",rank);
+/*
+    for(i=0;i<(N/p);i++)
+        {
+            printf("\nnumber= %d",resulting_random_numbers[i]);
+        }
+    printf("\n\n\n");
+*/
 
     int totalRuntime;
+    gettimeofday(&totalRuntimeEnd, NULL);
+    totalRuntime = (totalRuntimeEnd.tv_sec-totalRuntimeStart.tv_sec)*1000 + (totalRuntimeEnd.tv_usec-totalRuntimeStart.tv_usec)/1000;
 
+    printf("TOTAL RUNTIME=%d FOR a=%d     b=%d, Prime=%d, Seed=%d\n", totalRuntime, a, b, Prime, seed);
 
     MPI_Finalize();
 }
 
 void matrix_multiplication(int** a , int** b,int** mul)
 {
-	int i,j,k;
-	int** tmp = malloc(2 * (sizeof(int*)));
-	tmp[0] = malloc(2 * (sizeof(int)));
-	tmp[1] = malloc(2 * (sizeof(int)));
-	for(i=0;i<2;i++)
-	{
-		for(j=0;j<2;j++)
-		{
-			tmp[i][j] = 0;
-			for(k=0;k<2;k++)
-				{
-				tmp[i][j] = tmp[i][j] + a[i][k] * b[k][j];
-				}
-		}
-	}
-	int v,w;
+    int i,j,k;
+    int** tmp = malloc(2 * (sizeof(int*)));
+    tmp[0] = malloc(2 * (sizeof(int)));
+    tmp[1] = malloc(2 * (sizeof(int)));
+    for(i=0;i<2;i++)
+    {
+        for(j=0;j<2;j++)
+        {
+            tmp[i][j] = 0;
+            for(k=0;k<2;k++)
+                {
+                tmp[i][j] = tmp[i][j] + a[i][k] * b[k][j];
+                }
+        }
+    }
+    int v,w;
 
-	 mul[0] = malloc(2 * (sizeof(int)));
-	 mul[1] = malloc(2 * (sizeof(int)));
-	for (v = 0; v < 2; v++) {
-		for (w = 0; w < 2; w++) {
-			mul[v][w]=tmp[v][w];
-		}
-	}
+     mul[0] = malloc(2 * (sizeof(int)));
+     mul[1] = malloc(2 * (sizeof(int)));
+    for (v = 0; v < 2; v++) {
+        for (w = 0; w < 2; w++) {
+            mul[v][w]=tmp[v][w];
+        }
+    }
 
 
-	//return tmp;
+    //return tmp;
 }
 void print_matrix(int** matrix)
 {
-	int u, v, w;
-	//dim = (N/p);
-	for (v = 0; v < 2; v++) {
-		printf("\n");
-		for (w = 0; w < 2; w++) {
-			printf(": %d", matrix[v][w]);
+    int u, v, w;
+    //dim = (N/p);
+    for (v = 0; v < 2; v++) {
+        printf("\n");
+        for (w = 0; w < 2; w++) {
+            printf(": %d", matrix[v][w]);
 
-		}
-		printf("\n");
+        }
+        printf("\n");
 
-	}
-	printf("\n\n");
+    }
+    printf("\n\n");
 
 }
