@@ -13,39 +13,41 @@
 #include <sys/time.h>
 #include <math.h>
 #include <stdlib.h>
+extern randomNumberArraySize = 1000000;
 
-
-int main(int argc,char *argv[])
-{
+// Size of random number array
+// Returns a pointer to the random number array.
+int * randomNumber(){
     int rank, p, N, a,b,Prime,seed;
 
     struct timeval t1, t2, t3, t4;
 
 //    N = 16;
-    N = 1000000;
-    a = 3;
-    b = 5;
+//   N = 1000000;
+    N = randomNumberArraySize;
+    a = 7;
+    b = 19;
     seed = 10;
-    Prime = 93563;
+    Prime = 9973;
 //    X = 3;
 
     // Get a,b,P and random seed from the command line.
     // Overwriting the hardcoded values above.
-    if(argc > 5){
-        a = atoi(argv[1]);
-        b = atoi(argv[2]);
-        Prime = atoi(argv[3]);
-        seed = atoi(argv[4]);
-    }
+//   if(argc > 5){
+//        a = atoi(argv[1]);
+//        b = atoi(argv[2]);
+//        Prime = atoi(argv[3]);
+//        seed = atoi(argv[4]);
+//    }
 
 
     struct timeval totalRuntimeStart, totalRuntimeEnd;
 
     gettimeofday(&totalRuntimeStart, NULL);
     
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &p);
+//    MPI_Init(&argc, &argv);
+//    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//    MPI_Comm_size(MPI_COMM_WORLD, &p);
     //printf("Hello from rank %d",rank);
 
 
@@ -147,6 +149,10 @@ int main(int argc,char *argv[])
     {
         resulting_random_numbers[i] = ((resulting_random_numbers[i-1] * a) + b) % Prime;
     }
+
+    return resulting_random_numbers;
+
+
     //printf("\nfrom rank %d , anser  is ",rank);
 /*
     for(i=0;i<(N/p);i++)
@@ -156,13 +162,13 @@ int main(int argc,char *argv[])
     printf("\n\n\n");
 */
 
-    int totalRuntime;
-    gettimeofday(&totalRuntimeEnd, NULL);
-    totalRuntime = (totalRuntimeEnd.tv_sec-totalRuntimeStart.tv_sec)*1000 + (totalRuntimeEnd.tv_usec-totalRuntimeStart.tv_usec)/1000;
-
-    printf("TOTAL RUNTIME=%d FOR a=%d     b=%d, Prime=%d, Seed=%d\n", totalRuntime, a, b, Prime, seed);
-
-    MPI_Finalize();
+//    int totalRuntime;
+//    gettimeofday(&totalRuntimeEnd, NULL);
+//    totalRuntime = (totalRuntimeEnd.tv_sec-totalRuntimeStart.tv_sec)*1000 + (totalRuntimeEnd.tv_usec-totalRuntimeStart.tv_usec)/1000;
+//
+//    printf("TOTAL RUNTIME=%d FOR a=%d     b=%d, Prime=%d, Seed=%d\n", totalRuntime, a, b, Prime, seed);
+//
+//    MPI_Finalize();
 }
 
 void matrix_multiplication(int** a , int** b,int** mul)
