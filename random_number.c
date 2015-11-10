@@ -17,8 +17,8 @@ extern randomNumberArraySize = 1000000;
 
 // Size of random number array
 // Returns a pointer to the random number array.
-int * randomNumber(){
-    int rank, p, N, a,b,Prime,seed;
+int * randomNumber(int rank, int p){
+    int N, a,b,Prime,seed;
 
     struct timeval t1, t2, t3, t4;
 

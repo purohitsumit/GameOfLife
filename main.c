@@ -25,7 +25,7 @@ int main(int argc, char* argv[]){
 
 	// Get a pointer to the random number array
 	 // returned by method from previous PA.
-	 int *randomNumberArray = randomNumber();
+	 int *randomNumberArray = randomNumber(rank, p);
 
 }
 
